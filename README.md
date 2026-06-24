@@ -445,12 +445,12 @@ Full API reference: [docs/api_reference.md](docs/api_reference.md)
 
 ## 🎨 Dashboard
 
-<img src="demo/screenshots/executive_dashboard.png" alt="Executive Dashboard" width="100%"/>
+<img src="executive_dashboard.png" alt="Executive Dashboard" width="100%"/>
 
 <table>
 <tr>
-<td width="50%"><img src="demo/screenshots/stock_forecaster.png" alt="Stock Forecaster" width="100%"/></td>
-<td width="50%"><img src="demo/screenshots/model_arena.png" alt="Model Arena" width="100%"/></td>
+<td width="50%"><img src="stock_forecaster.png" alt="Stock Forecaster" width="100%"/></td>
+<td width="50%"><img src="model_arena.png" alt="Model Arena" width="100%"/></td>
 </tr>
 </table>
 

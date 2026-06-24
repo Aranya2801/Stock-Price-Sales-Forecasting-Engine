@@ -1,0 +1,87 @@
+# ── Python ───────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+.venv/
+venv/
+env/
+ENV/
+
+# ── Environment & Secrets ────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+secrets/
+
+# ── Testing ──────────────────────────────────────────────────────────
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+*.cover
+.tox/
+.hypothesis/
+
+# ── Type Checking ────────────────────────────────────────────────────
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.ruff_cache/
+
+# ── Jupyter ──────────────────────────────────────────────────────────
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# ── ML / Data ────────────────────────────────────────────────────────
+ml/model_registry/*.pt
+ml/model_registry/*.pth
+ml/model_registry/*.pkl
+ml/model_registry/*.cbm
+ml/vectorstore/
+mlruns/
+mlflow.db
+datasets/raw/*.csv
+datasets/processed/*.csv
+datasets/raw/*.parquet
+*.h5
+*.onnx
+
+# ── Reports & Outputs ────────────────────────────────────────────────
+reports/*.pdf
+reports/*.html
+!reports/.gitkeep
+
+# ── Logs ─────────────────────────────────────────────────────────────
+*.log
+logs/
+
+# ── IDE ──────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# ── Docker ───────────────────────────────────────────────────────────
+.docker/
+
+# ── Terraform ────────────────────────────────────────────────────────
+infra/terraform/.terraform/
+infra/terraform/*.tfstate
+infra/terraform/*.tfstate.backup
+infra/terraform/.terraform.lock.hcl
+
+# ── Streamlit ────────────────────────────────────────────────────────
+.streamlit/secrets.toml
+
+# ── Node (if any frontend tooling) ──────────────────────────────────
+node_modules/
+npm-debug.log*

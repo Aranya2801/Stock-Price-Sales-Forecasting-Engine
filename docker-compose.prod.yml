@@ -1,0 +1,44 @@
+version: "3.9"
+
+# Production overrides — apply with:
+# docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+services:
+  backend:
+    restart: always
+    environment:
+      ENVIRONMENT: production
+      DEBUG: "false"
+      WORKERS: 4
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 4G
+        reservations:
+          cpus: "1.0"
+          memory: 2G
+    command: ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]
+
+  frontend:
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 2G
+
+  postgres:
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+    volumes:
+      - postgres_prod_data:/var/lib/postgresql/data
+      - ./infra/docker/postgres-backup:/backup
+
+  redis:
+    command: redis-server --maxmemory 512mb --maxmemory-policy allkeys-lru --appendonly yes
+
+volumes:
+  postgres_prod_data:

@@ -1,0 +1,141 @@
+version: "3.9"
+
+services:
+  # ── PostgreSQL / TimescaleDB ────────────────────────────────────────
+  postgres:
+    image: timescale/timescaledb:latest-pg16
+    container_name: forecasting_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: forecasting_user
+      POSTGRES_PASSWORD: forecasting_pass
+      POSTGRES_DB: forecasting_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U forecasting_user -d forecasting_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - forecasting_net
+
+  # ── Redis Cache ──────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: forecasting_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - forecasting_net
+
+  # ── MLflow Tracking Server ──────────────────────────────────────────
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:latest
+    container_name: forecasting_mlflow
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    command: >
+      mlflow server
+      --host 0.0.0.0
+      --port 5000
+      --backend-store-uri sqlite:///mlflow/mlflow.db
+      --default-artifact-root /mlflow/artifacts
+    volumes:
+      - mlflow_data:/mlflow
+    networks:
+      - forecasting_net
+
+  # ── FastAPI Backend ──────────────────────────────────────────────────
+  backend:
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.backend
+    container_name: forecasting_backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://forecasting_user:forecasting_pass@postgres:5432/forecasting_db
+      REDIS_URL: redis://redis:6379
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./ml/model_registry:/app/ml/model_registry
+      - ./reports:/app/reports
+    networks:
+      - forecasting_net
+
+  # ── Streamlit Frontend ────────────────────────────────────────────────
+  frontend:
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.frontend
+    container_name: forecasting_frontend
+    restart: unless-stopped
+    environment:
+      BACKEND_URL: http://backend:8000/api/v1
+    ports:
+      - "8501:8501"
+    depends_on:
+      - backend
+    networks:
+      - forecasting_net
+
+  # ── Prometheus Monitoring ───────────────────────────────────────────
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: forecasting_prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    networks:
+      - forecasting_net
+
+  # ── Grafana Dashboards ────────────────────────────────────────────────
+  grafana:
+    image: grafana/grafana:latest
+    container_name: forecasting_grafana
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+    depends_on:
+      - prometheus
+    networks:
+      - forecasting_net
+
+volumes:
+  postgres_data:
+  redis_data:
+  mlflow_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  forecasting_net:
+    driver: bridge
